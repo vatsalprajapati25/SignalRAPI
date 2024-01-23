@@ -1,4 +1,5 @@
-﻿using API.Services;
+﻿using API.Models;
+using API.Services;
 using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Threading.Tasks;
@@ -42,5 +43,9 @@ namespace API.Hubs
             await Clients.Groups("WebChat").SendAsync("OnlineUsers", onlineUsers);
         }
 
+        public async Task ReceiveMessage(MessageModel message)
+        {
+            await Clients.Group("WebChat").SendAsync("NewMessage", message);
+        }
     }
 }
