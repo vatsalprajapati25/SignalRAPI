@@ -28,13 +28,14 @@ builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 // CORS configuration
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("CorsPolicy", builder =>
-    {
-        builder.AllowAnyHeader()
-        .AllowAnyMethod()
-        .AllowAnyOrigin()
-        .WithExposedHeaders("content-disposition");
-    });
+    options.AddPolicy("AllRequests",
+        builder =>
+        {
+            builder.WithOrigins("http://localhost:4200")
+            .AllowAnyMethod()
+            .AllowCredentials()
+            .AllowAnyHeader();
+        });
 });
 
 // Application Setting & SMTP Settings Configuration read from appsettings.json
@@ -99,7 +100,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
-app.UseCors("CorsPolicy");
+app.UseCors("AllRequests");
 app.UseRouting();
 app.UseAuthorization();
 app.UseStaticFiles();

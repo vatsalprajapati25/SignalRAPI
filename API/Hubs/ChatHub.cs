@@ -1,5 +1,6 @@
-﻿using API.Models;
+﻿using API.Models.Models;
 using API.Services;
+using API.Services.Services.Chat;
 using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Threading.Tasks;
@@ -9,9 +10,11 @@ namespace API.Hubs
     public class ChatHub : Hub
     {
         private readonly ChatService _chatService;
-        public ChatHub(ChatService chatService)
+        private readonly IChatService _chatRepoService;
+        public ChatHub(ChatService chatService, IChatService chatRepoService)
         {
             _chatService = chatService;
+            _chatRepoService = chatRepoService;
         }
 
         public override async Task OnConnectedAsync()
@@ -31,24 +34,35 @@ namespace API.Hubs
 
         public async Task AddUserConnectionId(string username)
         {
-            _chatService.AddUserConnectionId(username, Context.ConnectionId);
-            var onlineUsers = _chatService.GetOnlineUsers();
-            await DisplyOnlineUsers();
+            //_chatService.AddUserConnectionId(username, Context.ConnectionId);
+            UserModel user = new UserModel();
+            user.EmailID = username;
+            user.ChatConnectionID = Context.ConnectionId;
+            await _chatRepoService.UpdateConnection(user);
+            var onlineUsers = await _chatRepoService.GetOnlineUsers();
             await Clients.Groups("WebChat").SendAsync("OnlineUsers", onlineUsers);
         }
 
         public async Task DisplyOnlineUsers()
         {
-            var onlineUsers = _chatService.GetOnlineUsers();
+            //var onlineUsers = _chatService.GetOnlineUsers();
+            var onlineUsers = await _chatRepoService.GetOnlineUsers();
             await Clients.Groups("WebChat").SendAsync("OnlineUsers", onlineUsers);
         }
 
         public async Task ReceiveMessage(MessageModel message)
         {
-            await Clients.Group("WebChat").SendAsync("NewMessage", message);
+            var oldChats = await _chatRepoService.SaveGroupChat(message);
+            await Clients.Group("WebChat").SendAsync("NewMessage", oldChats);
         }
 
-        public async Task Chat(MessageModel message)
+        public async Task GetOldChats()
+        {
+            var oldChats = await _chatRepoService.GetGroupChats();
+            await Clients.Group("WebChat").SendAsync("GetOldChats", oldChats);
+        }
+
+        public async Task Chat(Models.MessageModel message)
         {
             string privateGroupName = GetPrivateGroupName(message.From, message.To);
             await Groups.AddToGroupAsync(Context.ConnectionId, privateGroupName);
@@ -57,7 +71,7 @@ namespace API.Hubs
             await Clients.Client(toConnection).SendAsync("OpenPrivateChat", message);
         }
 
-        public async Task ReceivePrivateMessages(MessageModel messages)
+        public async Task ReceivePrivateMessages(Models.MessageModel messages)
         {
             string privateGroupName = GetPrivateGroupName(messages.From, messages.To);
             await Clients.Group(privateGroupName).SendAsync("NewPrivateMessage", messages);

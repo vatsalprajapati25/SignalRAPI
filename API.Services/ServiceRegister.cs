@@ -1,4 +1,5 @@
-﻿using API.Services.Services.User;
+﻿using API.Services.Services.Chat;
+using API.Services.Services.User;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,8 @@ namespace API.Services
         {
             var dataDictionary = new Dictionary<Type, Type>
             {
-                { typeof(IUserService), typeof(UserService) }
+                { typeof(IUserService), typeof(UserService) },
+                { typeof(IChatService), typeof(ChatServices) }
             };
             return dataDictionary;
         }

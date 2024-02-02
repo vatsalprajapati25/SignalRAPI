@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace API.Models.Models
+﻿namespace API.Models.Models
 {
     public class UserModel
     {
@@ -17,7 +11,6 @@ namespace API.Models.Models
         public string? PeerUserId { get; set; }
         public string? PeerConnectionId { get; set; }
         public bool IsDeleted { get; set; }
-
-
+        public bool IsOnline { get; set; }
     }
 }
